@@ -1,0 +1,61 @@
+{
+  "name": "getontop-linkrad",
+  "version": "0.2.0",
+  "private": true,
+  "description": "getontop Linkrad: zweimal Shift, Kunde wählen, Link in Chrome öffnen.",
+  "author": "getontop",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test-trigger.cjs",
+    "dist:win": "electron-builder --win nsis portable --x64"
+  },
+  "dependencies": {
+    "uiohook-napi": "^1.5.5"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "linkrad.getontop",
+    "productName": "getontop Linkrad",
+    "publish": null,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "trigger.cjs",
+      "store.cjs",
+      "ui/**",
+      "build/*.png",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/uiohook-napi/**"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "getontop Linkrad",
+      "runAfterFinish": true,
+      "artifactName": "getontop-Linkrad-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "getontop-Linkrad-${version}-portable.${ext}"
+    },
+    "npmRebuild": false
+  }
+}

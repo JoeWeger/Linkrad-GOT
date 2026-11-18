@@ -1,0 +1,28 @@
+html, body { margin: 0; width: 640px; height: 640px; overflow: hidden; background: transparent; font-family: var(--font); user-select: none; }
+.wheel { position: absolute; inset: 0; overflow: visible; }
+.wheel:focus { outline: none; }
+.g { transform-origin: 320px 320px; filter: drop-shadow(0 10px 22px rgba(23, 51, 89, .30)); }
+.g.enter { animation: pop .16s ease-out; }
+.g.deeper { animation: zoom .2s ease-out; }
+@keyframes pop { from { opacity: 0; transform: scale(.94); } }
+@keyframes zoom { from { opacity: 0; transform: scale(.88); } }
+.ring { fill: #E9EEF4; }
+.seg { fill: #fff; cursor: pointer; transition: fill .08s; }
+.item { outline: none; }
+.item text { fill: var(--navy); font: 500 15px var(--font); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.item .tag { font: 400 11.5px var(--font); fill: var(--navy-soft); }
+/* Hervorheben = Leucht-Mint, Text bleibt Dunkelblau */
+.item.on .seg { fill: var(--mint); }
+.item:focus-visible .seg { fill: var(--mint); stroke: var(--coral); stroke-width: 3; }
+.item.on .tag, .item:focus-visible .tag { fill: var(--navy); }
+.item.more .seg { fill: var(--tint); }
+.hub { fill: var(--navy); cursor: pointer; }
+.hub-s { fill: rgba(255, 255, 255, .66); font: 400 12.5px var(--font); text-anchor: middle; pointer-events: none; }
+.hub-t { fill: #fff; font: 600 19px var(--font); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.hub-t.big { font-size: 23px; }
+.hub-t.two { font-size: 16px; }
+.dot { pointer-events: none; stroke: rgba(23, 51, 89, .25); stroke-width: 1; }
+.pills { position: absolute; left: 50%; top: 584px; transform: translateX(-50%); display: flex; gap: 6px; padding: 5px; border-radius: 999px; background: #fff; box-shadow: 0 6px 18px rgba(23, 51, 89, .22); }
+.pills button { font: 500 13px var(--font); color: var(--navy); background: none; border: 0; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.pills button:hover { background: var(--mint); }
+.toast { position: absolute; left: 50%; top: 20px; transform: translateX(-50%); background: var(--coral); color: #fff; font: 500 13px var(--font); padding: 8px 16px; border-radius: 999px; white-space: nowrap; max-width: 600px; overflow: hidden; text-overflow: ellipsis; }

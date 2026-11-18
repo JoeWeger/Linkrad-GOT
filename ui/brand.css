@@ -1,0 +1,21 @@
+/* getontop: Dunkelblau (Primär, alle Texte), Leucht-Mint (hervorheben), Leucht-Koralle (Akzente).
+   Schrift Lufga, falls installiert oder in ui/fonts abgelegt; sonst Outfit (frei, sehr ähnlich). */
+@font-face { font-family: "Lufga"; src: local("Lufga Regular"), local("Lufga-Regular"), url(fonts/Lufga-Regular.woff2) format("woff2"); font-weight: 400; }
+@font-face { font-family: "Lufga"; src: local("Lufga Medium"), local("Lufga-Medium"), url(fonts/Lufga-Medium.woff2) format("woff2"); font-weight: 500; }
+@font-face { font-family: "Lufga"; src: local("Lufga SemiBold"), local("Lufga-SemiBold"), url(fonts/Lufga-SemiBold.woff2) format("woff2"); font-weight: 600; }
+@font-face { font-family: "Outfit"; src: url(fonts/Outfit-400.woff2) format("woff2"); font-weight: 400; }
+@font-face { font-family: "Outfit"; src: url(fonts/Outfit-500.woff2) format("woff2"); font-weight: 500; }
+@font-face { font-family: "Outfit"; src: url(fonts/Outfit-600.woff2) format("woff2"); font-weight: 600; }
+:root {
+  --navy: #173359; --mint: #70FFCF; --coral: #FF6A3D; --white: #fff;
+  --navy-soft: #4a6181; --mint-soft: #E2FFF5; --tint: #F2F5F9;
+  --bg: var(--tint); --fg: var(--navy); --fg-soft: var(--navy-soft); --panel: var(--white); --line: rgba(23, 51, 89, .14);
+  --font: "Lufga", "Outfit", "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0f2440; --fg: var(--white); --fg-soft: #a9bad3; --panel: var(--navy); --line: rgba(255, 255, 255, .14); }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
