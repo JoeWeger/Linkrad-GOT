@@ -1,5 +1,5 @@
-// Linkrad: erster Ring Kunden, zweiter Ring deren Links.
-// Maus: anklicken. Tastatur: Pfeile, Enter, Ziffern 1–9, Anfangsbuchstabe, Esc/Rücktaste = zurück.
+// Linkrad: erster Ring Kunden, dann deren Links und Gruppen. Eine Gruppe öffnet ein weiteres Rad, beliebig tief.
+// Maus: anklicken. Tastatur: Pfeile, Enter, Ziffern 1–9, Anfangsbuchstabe, Esc/Rücktaste = eine Ebene zurück.
 const NS = 'http://www.w3.org/2000/svg';
 const C = 320, R0 = 92, R1 = 236, GAP = 0.028, PAGE = 12;
 const svg = document.getElementById('wheel');
@@ -7,7 +7,12 @@ const backBtn = document.getElementById('back');
 const editBtn = document.getElementById('edit');
 const toastEl = document.getElementById('toast');
 
-const S = { data: { clients: [] }, client: null, page: 0, hover: -1, anim: 'enter' };
+// stack: Weg ins Rad, z. B. [Kunde, Gruppe „Tasks“]. Leer = Kundenebene.
+const S = { data: { clients: [] }, stack: [], page: 0, hover: -1, anim: 'enter' };
+const here = () => S.stack[S.stack.length - 1] || null;
+const client = () => S.stack[0] || null;
+const kids = (node) => node.links || node.children || [];
+const count = (n) => `${n} Eintr${n === 1 ? 'ag' : 'äge'}`;
 
 const el = (name, attrs = {}, text) => {
   const n = document.createElementNS(NS, name);
@@ -36,9 +41,11 @@ const host = (url) => { try { const u = new URL(url); return u.protocol.startsWi
 
 // Einträge der aktuellen Ebene, mit Seiten bei mehr als 12
 function entries() {
-  const all = S.client
-    ? S.client.links.map((l) => ({ kind: 'link', label: l.label, sub: host(l.url), url: l.url }))
-    : S.data.clients.map((c) => ({ kind: 'client', label: c.name, sub: `${c.links.length} Link${c.links.length === 1 ? '' : 's'}`, client: c, color: c.color }));
+  const all = here()
+    ? kids(here()).map((l) => (l.children
+      ? { kind: 'group', label: l.label, sub: `${count(l.children.length)} ›`, node: l }
+      : { kind: 'link', label: l.label, sub: host(l.url), url: l.url }))
+    : S.data.clients.map((c) => ({ kind: 'client', label: c.name, sub: count(c.links.length), node: c, color: c.color }));
   if (all.length <= PAGE) return all;
   const per = PAGE - 1, pages = Math.ceil(all.length / per);
   const page = S.page % pages;
@@ -48,7 +55,7 @@ function entries() {
 function draw() {
   const list = entries();
   S.list = list;
-  svg.setAttribute('aria-label', S.client ? `Links von ${S.client.name}` : 'Kunden');
+  svg.setAttribute('aria-label', here() ? S.stack.map((x) => x.name || x.label).join(' › ') : 'Kunden');
   svg.replaceChildren();
   const g = el('g', { class: 'g' + (S.anim ? ' ' + S.anim : '') });
   S.anim = '';
@@ -78,12 +85,12 @@ function draw() {
       g.append(w);
     });
   }
-  const hub = el('circle', { cx: C, cy: C, r: R0 - 10, class: 'hub', role: 'button', 'aria-label': S.client ? 'Zurück zu den Kunden' : 'Schließen' });
-  hub.addEventListener('click', () => (S.client ? back() : window.linkrad.hide()));
+  const hub = el('circle', { cx: C, cy: C, r: R0 - 10, class: 'hub', role: 'button', 'aria-label': here() ? 'Eine Ebene zurück' : 'Schließen' });
+  hub.addEventListener('click', () => (here() ? back() : window.linkrad.hide()));
   g.append(hub, el('g', { id: 'hubtext' }));
   svg.append(g);
   drawHub();
-  backBtn.hidden = !S.client;
+  backBtn.hidden = !here();
 }
 
 function drawHub() {
@@ -92,11 +99,16 @@ function drawHub() {
   box.replaceChildren();
   const it = S.list?.[S.hover];
   let small, big;
-  if (it) { small = it.kind === 'link' ? (it.sub || 'öffnen') : it.kind === 'more' ? 'nächste Seite' : 'Links zeigen'; big = it.label; }
-  else if (S.client) { small = S.client.links.length ? 'Links von' : 'Noch keine Links'; big = S.client.name; }
+  if (it) { small = it.kind === 'link' ? (it.sub || 'öffnen') : it.kind === 'more' ? 'nächste Seite' : 'öffnen ›'; big = it.label; }
+  else if (here()) {
+    // Weg anzeigen: „Müller Bau ›“ über „Tasks“
+    const parent = S.stack[S.stack.length - 2];
+    small = !kids(here()).length ? 'Noch leer' : parent ? `${parent.name || parent.label} ›` : 'Kunde';
+    big = here().name || here().label;
+  }
   else { small = S.data.clients.length ? 'zweimal Shift' : 'Noch keine Kunden'; big = S.data.clients.length ? 'Kunden' : 'Bearbeiten'; }
   // Punkt in der Mitte: Farbe des Kunden, sonst Leucht-Koralle als Akzent
-  const color = it?.color || S.client?.color || '#FF6A3D';
+  const color = it?.color || client()?.color || '#FF6A3D';
   box.append(el('circle', { cx: C, cy: C - 44, r: 4, fill: color.toUpperCase() === '#173359' ? '#fff' : color }));
   // Langer Name: zwei Zeilen, kleinere Schrift
   const lines = big.length <= 11 ? [big] : wrap(big, 12).map((l) => cut(l, 12));
@@ -111,11 +123,11 @@ async function choose(i) {
   const it = S.list?.[i];
   if (!it) return;
   if (it.kind === 'more') { S.page++; S.hover = -1; S.anim = 'enter'; draw(); return focusFirst(); }
-  if (it.kind === 'client') { S.client = it.client; S.page = 0; S.hover = -1; S.anim = 'deeper'; draw(); return focusFirst(); }
+  if (it.kind === 'client' || it.kind === 'group') { S.stack.push(it.node); S.page = 0; S.hover = -1; S.anim = 'deeper'; draw(); return focusFirst(); }
   const r = await window.linkrad.open(it.url);
   if (r?.error) toast(r.error);
 }
-function back() { S.client = null; S.page = 0; S.hover = -1; S.anim = 'enter'; draw(); focusFirst(); }
+function back() { S.stack.pop(); S.page = 0; S.hover = -1; S.anim = 'enter'; draw(); focusFirst(); }
 function focusFirst() { svg.querySelector('.item')?.focus({ preventScroll: true }); }
 
 let toastTimer;
@@ -125,8 +137,8 @@ function toast(msg) { toastEl.textContent = msg; toastEl.hidden = false; clearTi
 addEventListener('keydown', (e) => {
   const items = [...svg.querySelectorAll('.item')];
   const cur = items.indexOf(document.activeElement);
-  if (e.key === 'Escape') { e.preventDefault(); return S.client ? back() : window.linkrad.hide(); }
-  if (e.key === 'Backspace' && S.client) { e.preventDefault(); return back(); }
+  if (e.key === 'Escape') { e.preventDefault(); return here() ? back() : window.linkrad.hide(); }
+  if (e.key === 'Backspace' && here()) { e.preventDefault(); return back(); }
   if (['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Tab'].includes(e.key) && items.length) {
     e.preventDefault();
     const dir = e.key === 'ArrowLeft' || e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey) ? -1 : 1;
@@ -149,12 +161,12 @@ backBtn.addEventListener('click', back);
 editBtn.addEventListener('click', () => window.linkrad.edit());
 
 window.linkrad.onShow((data) => {
-  S.data = data; S.client = null; S.page = 0; S.hover = -1; S.anim = 'enter';
+  S.data = data; S.stack = []; S.page = 0; S.hover = -1; S.anim = 'enter';
   toastEl.hidden = true;
   draw();
   svg.focus({ preventScroll: true }); // Tastatur bereit, aber noch nichts markiert
 });
-window.linkrad.onHide(() => { S.client = null; });
+window.linkrad.onHide(() => { S.stack = []; });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
 
 // Für den Selbsttest

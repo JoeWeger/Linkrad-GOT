@@ -11,6 +11,11 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 
 let data = { clients: [] };
 let sel = 0;
+let path = []; // offene Gruppen innerhalb des Kunden, z. B. [Gruppe „Tasks“]
+const MAX_GROUPS = 5;
+const level = () => (path.length ? path[path.length - 1].children : data.clients[sel].links);
+const total = (list) => list.reduce((n, x) => n + (x.children ? 1 + total(x.children) : 1), 0);
+const entriesWord = (n) => `${n} Eintr${n === 1 ? 'ag' : 'äge'}`;
 
 function guessLabel(url) {
   const u = url.trim();
@@ -83,7 +88,7 @@ function move(arr, i, d, isClient) {
   changed();
 }
 function select(i, focusList = false) {
-  sel = i; drawList(); drawDetail();
+  sel = i; path = []; drawList(); drawDetail();
   if (focusList) $('#clientList').children[i]?.focus();
 }
 
@@ -104,36 +109,67 @@ function drawDetail() {
   drawLinks();
 }
 
+function drawCrumbs() {
+  const nav = $('#crumbs');
+  nav.replaceChildren();
+  const parts = [{ label: 'Einträge', depth: 0 }, ...path.map((g, i) => ({ label: g.label || 'Gruppe', depth: i + 1 }))];
+  parts.forEach((p, i) => {
+    if (i) { const s = document.createElement('span'); s.className = 'sep'; s.textContent = '›'; nav.append(s); }
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = p.label;
+    if (i === parts.length - 1) b.setAttribute('aria-current', 'location');
+    else b.onclick = () => { path = path.slice(0, p.depth); drawLinks(); };
+    nav.append(b);
+  });
+}
+
 function drawLinks() {
-  const c = data.clients[sel];
+  const list = level();
   const ol = $('#links');
   ol.replaceChildren();
-  c.links.forEach((l, i) => {
+  drawCrumbs();
+  list.forEach((l, i) => {
     const li = document.createElement('li');
     const label = document.createElement('input');
-    label.type = 'text'; label.value = l.label; label.placeholder = 'Name'; label.maxLength = 60; label.setAttribute('aria-label', `Name von Link ${i + 1}`);
-    const url = document.createElement('input');
-    url.type = 'text'; url.value = l.url; url.placeholder = 'https://… oder \\\\server\\ordner'; url.spellcheck = false; url.setAttribute('aria-label', `Adresse von Link ${i + 1}`);
-    label.oninput = () => { l.label = label.value; l.auto = false; changed(false); updateCount(); };
-    url.oninput = () => {
-      l.url = url.value;
-      if (!label.value.trim() || l.auto) { l.label = guessLabel(url.value); label.value = l.label; l.auto = true; }
-      changed(false);
-    };
+    label.type = 'text'; label.value = l.label; label.placeholder = l.children ? 'Name der Gruppe' : 'Name'; label.maxLength = 60;
+    label.setAttribute('aria-label', `Name von Eintrag ${i + 1}`);
+    label.oninput = () => { l.label = label.value; l.auto = false; changed(false); };
+    let second;
+    if (l.children) {
+      // Gruppe: statt Adresse ein Knopf, der hineinführt
+      li.className = 'group';
+      second = document.createElement('button');
+      second.type = 'button'; second.className = 'open';
+      second.textContent = `Öffnen › ${entriesWord(l.children.length)}`;
+      second.onclick = () => { path.push(l); drawLinks(); };
+    } else {
+      second = document.createElement('input');
+      second.type = 'text'; second.value = l.url; second.placeholder = 'https://… oder \\\\server\\ordner'; second.spellcheck = false;
+      second.setAttribute('aria-label', `Adresse von Eintrag ${i + 1}`);
+      second.oninput = () => {
+        l.url = second.value;
+        if (!label.value.trim() || l.auto) { l.label = guessLabel(second.value); label.value = l.label; l.auto = true; }
+        changed(false);
+      };
+    }
     const acts = document.createElement('span'); acts.className = 'acts';
     acts.append(
-      btn('↗', 'Ausprobieren', () => l.url && window.linkrad.open(l.url), 'ic'),
-      btn('↑', 'Nach oben', () => move(c.links, i, -1), 'ic'),
-      btn('↓', 'Nach unten', () => move(c.links, i, 1), 'ic'),
-      btn('×', 'Link löschen', () => { c.links.splice(i, 1); drawLinks(); changed(); }, 'ic del'),
+      l.children ? btn('›', 'Gruppe öffnen', () => { path.push(l); drawLinks(); }, 'ic') : btn('↗', 'Ausprobieren', () => l.url && window.linkrad.open(l.url), 'ic'),
+      btn('↑', 'Nach oben', () => move(list, i, -1), 'ic'),
+      btn('↓', 'Nach unten', () => move(list, i, 1), 'ic'),
+      btn('×', l.children ? 'Gruppe löschen' : 'Link löschen', () => {
+        if (l.children && l.children.length && !confirm(`Gruppe „${l.label}“ mit ${entriesWord(total(l.children))} löschen?`)) return;
+        list.splice(i, 1); drawLinks(); changed();
+      }, 'ic del'),
     );
-    li.append(label, url, acts);
+    li.append(label, second, acts);
     ol.append(li);
   });
+  $('#addGroup').disabled = path.length >= MAX_GROUPS;
   updateCount();
 }
 function updateCount() {
-  const n = data.clients[sel]?.links.length || 0;
+  const n = data.clients[sel] ? level().length : 0;
   $('#count').textContent = n > 11 ? `· ${n}, ab 12 wird im Rad geblättert` : n ? `· ${n}` : '';
 }
 
@@ -146,16 +182,22 @@ $('#addClient').onclick = () => {
   $('#name').focus(); $('#name').select();
 };
 $('#addLink').onclick = () => {
-  const c = data.clients[sel];
-  c.links.push({ id: uid(), label: '', url: '', auto: true });
+  level().push({ id: uid(), label: '', url: '', auto: true });
   drawLinks();
   $('#links').lastElementChild.querySelectorAll('input')[1].focus(); // gleich die Adresse einfügen
 };
+$('#addGroup').onclick = () => {
+  if (path.length >= MAX_GROUPS) return;
+  level().push({ id: uid(), label: 'Neue Gruppe', children: [] });
+  drawLinks(); changed();
+  const inp = $('#links').lastElementChild.querySelector('input');
+  inp.focus(); inp.select();
+};
 $('#delClient').onclick = () => {
   const c = data.clients[sel];
-  if (!confirm(`„${c.name}“ mit ${c.links.length} Link${c.links.length === 1 ? '' : 's'} löschen?`)) return;
+  if (!confirm(`„${c.name}“ mit ${entriesWord(total(c.links))} löschen?`)) return;
   data.clients.splice(sel, 1);
-  sel = Math.max(0, sel - 1);
+  sel = Math.max(0, sel - 1); path = [];
   drawList(); drawDetail(); changed();
 };
 $('#export').onclick = async () => { await save(); const r = await window.linkrad.exportFile(); if (r?.ok) status('Exportiert'); };
@@ -166,7 +208,7 @@ $('#import').onclick = async () => {
   const incoming = Array.isArray(r.data.clients) ? r.data.clients : [];
   const replace = data.clients.length && confirm(`${incoming.length} Kunden gefunden.\n\nOK = deine Liste ersetzen\nAbbrechen = hinten anhängen`);
   data.clients = replace ? incoming : [...data.clients, ...incoming];
-  sel = 0; drawList(); drawDetail(); changed();
+  sel = 0; path = []; drawList(); drawDetail(); changed();
   status(`${incoming.length} Kunden importiert`);
 };
 $('#showFile').onclick = () => window.linkrad.showFile();

@@ -26,3 +26,5 @@ html, body { margin: 0; width: 640px; height: 640px; overflow: hidden; backgroun
 .pills button { font: 500 13px var(--font); color: var(--navy); background: none; border: 0; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
 .pills button:hover { background: var(--mint); }
 .toast { position: absolute; left: 50%; top: 20px; transform: translateX(-50%); background: var(--coral); color: #fff; font: 500 13px var(--font); padding: 8px 16px; border-radius: 999px; white-space: nowrap; max-width: 600px; overflow: hidden; text-overflow: ellipsis; }
+.item.group .seg { fill: #F7FAFD; }
+.item.group.on .seg { fill: var(--mint); }

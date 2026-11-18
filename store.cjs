@@ -10,7 +10,10 @@ const EXAMPLE = {
   version: 1,
   clients: [
     { id: id(), name: 'Beispiel GmbH', color: '#70FFCF', links: [
-      { id: id(), label: 'Projekt-Board', url: 'https://app.asana.com/' },
+      { id: id(), label: 'Tasks', children: [
+        { id: id(), label: 'Projekt-Board', url: 'https://app.asana.com/' },
+        { id: id(), label: 'Meine Aufgaben', url: 'https://app.asana.com/0/my-tasks' },
+      ] },
       { id: id(), label: 'Drive-Ordner', url: 'https://drive.google.com/' },
       { id: id(), label: 'Website', url: 'https://example.com/' },
       { id: id(), label: 'Mail', url: 'mailto:kontakt@example.com' },
@@ -31,19 +34,29 @@ function normalizeUrl(raw) {
 // Gefährliche Schemata nie öffnen
 const blocked = (u) => /^(javascript|data|vbscript):/i.test(u);
 
+// Ein Eintrag ist ein Link ({ label, url }) oder eine Gruppe ({ label, children: [...] }), die im Rad eine weitere Ebene öffnet.
+const MAX_DEPTH = 6;
+function cleanEntries(list, depth) {
+  return (Array.isArray(list) ? list : []).map((l) => {
+    const label = String(l?.label || '').slice(0, 60);
+    if (Array.isArray(l?.children) && depth < MAX_DEPTH) {
+      return { id: String(l.id || id()), label: label || 'Gruppe', children: cleanEntries(l.children, depth + 1) };
+    }
+    const url = normalizeUrl(l?.url);
+    if (!url || blocked(url)) return null;
+    return { id: String(l.id || id()), label: label || 'Link', url };
+  }).filter(Boolean);
+}
+
 function clean(data) {
   const clients = Array.isArray(data?.clients) ? data.clients : [];
   return {
-    version: 1,
+    version: 2,
     clients: clients.map((c, i) => ({
       id: String(c.id || id()),
       name: String(c.name || 'Ohne Namen').slice(0, 60),
       color: /^#[0-9a-f]{6}$/i.test(c.color) ? c.color : COLORS[i % COLORS.length],
-      links: (Array.isArray(c.links) ? c.links : []).map((l) => ({
-        id: String(l.id || id()),
-        label: String(l.label || 'Link').slice(0, 60),
-        url: normalizeUrl(l.url),
-      })).filter((l) => l.url && !blocked(l.url)),
+      links: cleanEntries(c.links, 1),
     })),
   };
 }
@@ -74,4 +87,4 @@ function createStore(dir) {
   return { file, load, save, get: () => data ?? load() };
 }
 
-module.exports = { createStore, clean, normalizeUrl, blocked, COLORS };
+module.exports = { createStore, clean, normalizeUrl, blocked, COLORS, MAX_DEPTH };

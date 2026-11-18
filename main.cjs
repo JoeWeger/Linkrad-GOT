@@ -247,11 +247,19 @@ async function selftest() {
     await wheel.webContents.executeJavaScript('window.__hover(1)'); await wait(200);
     await shot(wheel, 'rad-kunden.png');
     await wheel.webContents.executeJavaScript('window.__pick(0)'); await wait(450);
-    await wheel.webContents.executeJavaScript('window.__hover(2)'); await wait(200);
+    await wheel.webContents.executeJavaScript('window.__hover(0)'); await wait(200);
     await shot(wheel, 'rad-links.png');
+    // eine Ebene tiefer: erster Eintrag ist im Testdatensatz eine Gruppe
+    await wheel.webContents.executeJavaScript('window.__pick(0)'); await wait(450);
+    await wheel.webContents.executeJavaScript('window.__hover(1)'); await wait(200);
+    await shot(wheel, 'rad-gruppe.png');
+    await wheel.webContents.executeJavaScript(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`); await wait(300);
+    log('Selbsttest: nach Esc auf Ebene', await wheel.webContents.executeJavaScript('document.getElementById("wheel").getAttribute("aria-label")'));
     openEditor();
     await new Promise((r) => editor.webContents.once('did-finish-load', r)); await wait(600);
     await shot(editor, 'editor.png');
+    await editor.webContents.executeJavaScript(`document.querySelector('#links .open').click()`); await wait(300);
+    await shot(editor, 'editor-gruppe.png');
     log('Selbsttest ok');
   } catch (e) { log('Selbsttest Fehler', e.stack); process.exitCode = 1; }
   app.quit();

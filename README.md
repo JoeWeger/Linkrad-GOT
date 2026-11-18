@@ -8,10 +8,10 @@ Läuft auf Windows 10/11 als kleine App in der Taskleiste. Keine Cloud, kein Kon
 ## Installieren
 
 **Download** (Datei öffnen, rechts oben auf das Download-Symbol klicken):
-- mit Installation: [`download/getontop-Linkrad-Setup-0.2.0.exe`](download/getontop-Linkrad-Setup-0.2.0.exe)
-- ohne Installation: [`download/getontop-Linkrad-0.2.0-portable.exe`](download/getontop-Linkrad-0.2.0-portable.exe)
+- mit Installation: [`download/getontop-Linkrad-Setup-0.3.0.exe`](download/getontop-Linkrad-Setup-0.3.0.exe)
+- ohne Installation: [`download/getontop-Linkrad-0.3.0-portable.exe`](download/getontop-Linkrad-0.3.0-portable.exe)
 
-1. `getontop-Linkrad-Setup-0.2.0.exe` ausführen. Oder ohne Installation: `getontop-Linkrad-0.2.0-portable.exe` starten.
+1. `getontop-Linkrad-Setup-0.3.0.exe` ausführen. Oder ohne Installation: `getontop-Linkrad-0.3.0-portable.exe` starten.
    Hattest du die erste Version („Augenhöhe Linkrad“) installiert: Deine Kunden und Links werden automatisch übernommen. Die alte Version danach über *Einstellungen → Apps* deinstallieren.
 2. Die Datei ist nicht signiert, darum warnt Windows SmartScreen („Der Computer wurde durch Windows geschützt“):
    **Weitere Informationen** → **Trotzdem ausführen**.
@@ -37,11 +37,16 @@ Abschalten: Taskleisten-Menü → **Zweimal Shift aktiv**.
 
 Ab 12 Einträgen wird im Rad geblättert („Weitere …“).
 
+**Gruppen (weitere Ebenen):** Ein Eintrag kann statt eines Links eine **Gruppe** sein, z. B. „Tasks“.
+Im Rad steht darunter „4 Einträge ›“; ein Klick öffnet ein weiteres Rad mit Sprint-Board, Backlog, Bugs …
+Gruppen lassen sich bis zu 5 Ebenen tief verschachteln. Esc oder „← Zurück“ geht immer eine Ebene hoch, die Mitte zeigt, wo du bist (z. B. „Müller Bau ›“ über „Tasks“).
+
 ## Kunden & Links pflegen
 
 Taskleisten-Menü → **Kunden & Links bearbeiten …** (oder Doppelklick aufs Symbol, oder „Bearbeiten“ unter dem Rad).
 
 - **+ Kunde**, Name eintippen, Farbe wählen. Die Farbe erscheint als Punkt im Rad.
+- **+ Gruppe** legt eine weitere Ebene an. **Öffnen ›** führt hinein, die Zeile oben („Einträge › Tasks“) wieder hinaus.
 - **+ Link** und Adresse einfügen. Der Name kommt von selbst (Asana, Drive, Figma, Jira, Notion …) und lässt sich überschreiben.
   `app.asana.com/…` wird automatisch zu `https://app.asana.com/…`.
 - Webadressen öffnen sich immer als neuer Tab in **Chrome** (im zuletzt benutzten Chrome-Fenster und -Profil). Ist Chrome nicht installiert, nimmt Windows den Standard-Browser.
@@ -66,7 +71,7 @@ Fest einbauen: `Lufga-Regular.woff2`, `Lufga-Medium.woff2`, `Lufga-SemiBold.woff
 npm install
 npm start          # aus dem Quellcode starten
 npm test           # Test der Doppel-Shift-Erkennung
-npm run dist:win   # dist\getontop-Linkrad-Setup-0.2.0.exe und …-portable.exe
+npm run dist:win   # dist\getontop-Linkrad-Setup-0.3.0.exe und …-portable.exe
 ```
 
 | Datei | Zweck |

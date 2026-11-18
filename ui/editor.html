@@ -31,11 +31,12 @@
         <label class="field grow">Name<input id="name" type="text" maxlength="60" autocomplete="off"></label>
         <div class="field">Farbe<div class="swatches" id="swatches" role="radiogroup" aria-label="Farbe"></div></div>
       </div>
-      <h3>Links <span class="hint" id="count"></span></h3>
+      <h3><nav class="crumbs" id="crumbs" aria-label="Ebene"></nav> <span class="hint" id="count"></span></h3>
       <ol id="links" class="links"></ol>
       <div class="row">
         <button class="btn" id="addLink" type="button">+ Link</button>
-        <span class="hint">Tipp: Adresse einfügen, der Name kommt von selbst. Auch Ordner wie <code>\\server\Kunden\Müller</code> gehen.</span>
+        <button class="btn ghost" id="addGroup" type="button" title="Eine Gruppe öffnet im Rad eine weitere Ebene">+ Gruppe</button>
+        <span class="hint">Eine <strong>Gruppe</strong> öffnet im Rad ein weiteres Rad, z. B. „Tasks“ mit Board, Backlog, Bugs.<br>Adresse einfügen, der Name kommt von selbst. Auch Ordner wie <code>\\server\Kunden\Müller</code> gehen.</span>
       </div>
       <div class="danger"><button class="link" id="delClient" type="button">Kunde löschen</button></div>
     </div>

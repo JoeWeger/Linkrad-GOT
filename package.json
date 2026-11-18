@@ -1,6 +1,6 @@
 {
   "name": "getontop-linkrad",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "getontop Linkrad: zweimal Shift, Kunde wählen, Link in Chrome öffnen.",
   "author": "getontop",
@@ -15,7 +15,8 @@
   },
   "devDependencies": {
     "electron": "^33.4.11",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "resedit": "^2.0.3"
   },
   "build": {
     "appId": "linkrad.getontop",
@@ -56,6 +57,7 @@
     "portable": {
       "artifactName": "getontop-Linkrad-${version}-portable.${ext}"
     },
-    "npmRebuild": false
+    "npmRebuild": false,
+    "afterPack": "build/afterPack.cjs"
   }
 }
