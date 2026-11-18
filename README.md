@@ -7,7 +7,9 @@ Läuft auf Windows 10/11 als kleine App in der Taskleiste. Keine Cloud, kein Kon
 
 ## Installieren
 
-**Download:** [`download/getontop-Linkrad-Setup-0.2.0.exe`](download/getontop-Linkrad-Setup-0.2.0.exe) öffnen und rechts oben auf das Download-Symbol (Pfeil nach unten) klicken.
+**Download** (Datei öffnen, rechts oben auf das Download-Symbol klicken):
+- mit Installation: [`download/getontop-Linkrad-Setup-0.2.0.exe`](download/getontop-Linkrad-Setup-0.2.0.exe)
+- ohne Installation: [`download/getontop-Linkrad-0.2.0-portable.exe`](download/getontop-Linkrad-0.2.0-portable.exe)
 
 1. `getontop-Linkrad-Setup-0.2.0.exe` ausführen. Oder ohne Installation: `getontop-Linkrad-0.2.0-portable.exe` starten.
    Hattest du die erste Version („Augenhöhe Linkrad“) installiert: Deine Kunden und Links werden automatisch übernommen. Die alte Version danach über *Einstellungen → Apps* deinstallieren.
