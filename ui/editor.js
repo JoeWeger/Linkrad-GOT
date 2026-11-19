@@ -17,8 +17,21 @@ const level = () => (path.length ? path[path.length - 1].children : data.clients
 const total = (list) => list.reduce((n, x) => n + (x.children ? 1 + total(x.children) : 1), 0);
 const entriesWord = (n) => `${n} Eintr${n === 1 ? 'ag' : 'äge'}`;
 
+// Doppel-Link aus OneNote: nur den onenote:-Teil behalten (wie store.cjs)
+function pickOneNote(s) {
+  const i = s.toLowerCase().lastIndexOf('onenote:');
+  return i > 0 ? s.slice(i).trim() : s;
+}
+
 function guessLabel(url) {
   const u = url.trim();
+  if (/^onenote:/i.test(u)) {
+    // Name aus dem Pfad: …/Häfele Austria GmbH/ oder …/Kontaktdaten.one#section-id=…
+    const p = u.replace(/^onenote:/i, '').split(/[#?]/)[0].split('/').filter(Boolean).pop() || '';
+    let name = p;
+    try { name = decodeURIComponent(p); } catch { /* bleibt roh */ }
+    return name.replace(/\.one$/i, '') || 'OneNote';
+  }
   if (/^[a-z]:[\\/]|^\\\\/i.test(u)) return u.split(/[\\/]/).filter(Boolean).pop() || 'Ordner';
   if (/^mailto:/i.test(u)) return 'Mail';
   try {
@@ -146,7 +159,19 @@ function drawLinks() {
       second = document.createElement('input');
       second.type = 'text'; second.value = l.url; second.placeholder = 'https://… oder \\\\server\\ordner'; second.spellcheck = false;
       second.setAttribute('aria-label', `Adresse von Eintrag ${i + 1}`);
+      second.addEventListener('paste', (e) => {
+        // Zwischenablage mit Zeilenumbrüchen lesen, bevor das Feld sie verschluckt
+        const text = e.clipboardData?.getData('text') || '';
+        if (/onenote:/i.test(text) && /\s/.test(text.trim())) {
+          e.preventDefault();
+          const one = text.split(/\s+(?=onenote:)/i).find((x) => /^onenote:/i.test(x.trim())) || text;
+          second.value = one.trim();
+          second.dispatchEvent(new Event('input'));
+        }
+      });
       second.oninput = () => {
+        const fixed = pickOneNote(second.value);
+        if (fixed !== second.value) second.value = fixed;
         l.url = second.value;
         if (!label.value.trim() || l.auto) { l.label = guessLabel(second.value); label.value = l.label; l.auto = true; }
         changed(false);

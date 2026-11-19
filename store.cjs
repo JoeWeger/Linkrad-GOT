@@ -22,9 +22,17 @@ const EXAMPLE = {
 };
 
 // Eingabe aufräumen: "asana.com/x" → https://asana.com/x, "C:\Projekte" bleibt ein Ordnerpfad
+// OneNote legt bei „Link kopieren“ Web-Link und Desktop-Link (onenote:…) zusammen ab.
+// Beim Einfügen kleben beide aneinander. Dann nur den onenote:-Teil behalten, der die Desktop-App öffnet.
+function pickOneNote(s) {
+  const i = s.toLowerCase().lastIndexOf('onenote:');
+  return i > 0 ? s.slice(i).trim() : s;
+}
+
 function normalizeUrl(raw) {
-  const s = String(raw || '').trim();
+  let s = pickOneNote(String(raw || '').trim());
   if (!s) return '';
+  if (/^onenote:/i.test(s)) return s.replace(/ /g, '%20'); // Leerzeichen in SharePoint-Pfaden
   if (/^[a-zA-Z]:[\\/]/.test(s) || s.startsWith('\\\\')) return s; // Windows-Pfad oder Netzlaufwerk
   if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(s)) return s;               // hat schon ein Schema
   if (/^[^\s/]+\.[^\s/]+/.test(s)) return 'https://' + s;          // sieht aus wie eine Domain
@@ -87,4 +95,4 @@ function createStore(dir) {
   return { file, load, save, get: () => data ?? load() };
 }
 
-module.exports = { createStore, clean, normalizeUrl, blocked, COLORS, MAX_DEPTH };
+module.exports = { createStore, clean, normalizeUrl, pickOneNote, blocked, COLORS, MAX_DEPTH };
