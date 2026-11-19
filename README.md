@@ -8,10 +8,10 @@ Läuft auf Windows 10/11 als kleine App in der Taskleiste. Keine Cloud, kein Kon
 ## Installieren
 
 **Download** (Datei öffnen, rechts oben auf das Download-Symbol klicken):
-- mit Installation: [`download/getontop-Linkrad-Setup-0.3.1.exe`](download/getontop-Linkrad-Setup-0.3.1.exe)
-- ohne Installation: [`download/getontop-Linkrad-0.3.1-portable.exe`](download/getontop-Linkrad-0.3.1-portable.exe)
+- mit Installation: [`download/getontop-Linkrad-Setup-0.3.2.exe`](download/getontop-Linkrad-Setup-0.3.2.exe)
+- ohne Installation: [`download/getontop-Linkrad-0.3.2-portable.exe`](download/getontop-Linkrad-0.3.2-portable.exe)
 
-1. `getontop-Linkrad-Setup-0.3.1.exe` ausführen. Oder ohne Installation: `getontop-Linkrad-0.3.1-portable.exe` starten.
+1. `getontop-Linkrad-Setup-0.3.2.exe` ausführen. Oder ohne Installation: `getontop-Linkrad-0.3.2-portable.exe` starten.
    Hattest du die erste Version („Augenhöhe Linkrad“) installiert: Deine Kunden und Links werden automatisch übernommen. Die alte Version danach über *Einstellungen → Apps* deinstallieren.
 2. Die Datei ist nicht signiert, darum warnt Windows SmartScreen („Der Computer wurde durch Windows geschützt“):
    **Weitere Informationen** → **Trotzdem ausführen**.
@@ -46,6 +46,8 @@ Gruppen lassen sich bis zu 5 Ebenen tief verschachteln. Esc oder „← Zurück�
 Taskleisten-Menü → **Kunden & Links bearbeiten …** (oder Doppelklick aufs Symbol, oder „Bearbeiten“ unter dem Rad).
 
 - **+ Kunde**, Name eintippen, Farbe wählen. Die Farbe erscheint als Punkt im Rad.
+- **Reihenfolge der Kunden** = Reihenfolge im Rad (im Uhrzeigersinn ab 12 Uhr). Kunden in der Liste **mit der Maus ziehen**, mit **⤒** ganz nach oben holen
+  oder per Tastatur mit **Alt+↑ / Alt+↓** (Alt+Pos1 = ganz nach oben). Bei mehr als 12 Kunden zeigt eine gestrichelte Linie, wer im ersten Rad steht und wer unter „Weitere …“ landet.
 - **+ Gruppe** legt eine weitere Ebene an. **Öffnen ›** führt hinein, die Zeile oben („Einträge › Tasks“) wieder hinaus.
 - **+ Link** und Adresse einfügen. Der Name kommt von selbst (Asana, Drive, Figma, Jira, Notion …) und lässt sich überschreiben.
   `app.asana.com/…` wird automatisch zu `https://app.asana.com/…`.
@@ -72,7 +74,7 @@ Fest einbauen: `Lufga-Regular.woff2`, `Lufga-Medium.woff2`, `Lufga-SemiBold.woff
 npm install
 npm start          # aus dem Quellcode starten
 npm test           # Test der Doppel-Shift-Erkennung
-npm run dist:win   # dist\getontop-Linkrad-Setup-0.3.1.exe und …-portable.exe
+npm run dist:win   # dist\getontop-Linkrad-Setup-0.3.2.exe und …-portable.exe
 ```
 
 | Datei | Zweck |

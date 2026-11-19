@@ -62,29 +62,84 @@ async function save() {
 addEventListener('beforeunload', () => { if (saveTimer) { clearTimeout(saveTimer); window.linkrad.save(data); } });
 
 // ---------- Liste der Kunden ----------
+// Im Rad passen 12 Einträge; bei mehr zeigt die erste Seite 11 und „Weitere …“
+const FIRST_PAGE = (n) => (n <= 12 ? n : 11);
+
+// Kunden verschieben (Ziehen, Pfeile, „ganz nach oben“). Die Auswahl bleibt beim selben Kunden.
+function relocate(from, to) {
+  if (from === to || from < 0 || to < 0 || from >= data.clients.length || to >= data.clients.length) return;
+  const current = data.clients[sel];
+  const [c] = data.clients.splice(from, 1);
+  data.clients.splice(to, 0, c);
+  sel = data.clients.indexOf(current);
+  changed();
+  const li = $('#clientList').querySelector(`li[data-i="${data.clients.indexOf(c)}"]`);
+  li?.classList.add('moved');
+}
+
+let dragFrom = -1;
 function drawList() {
   const ul = $('#clientList');
   ul.replaceChildren();
+  const n = data.clients.length;
+  const cut = FIRST_PAGE(n);
   data.clients.forEach((c, i) => {
+    if (i === cut && cut < n) {
+      const d = document.createElement('li');
+      d.className = 'divider'; d.setAttribute('role', 'separator');
+      d.textContent = 'ab hier im Rad unter „Weitere …“';
+      ul.append(d);
+    }
     const li = document.createElement('li');
+    li.dataset.i = i;
+    li.draggable = true;
     li.setAttribute('role', 'option');
     li.setAttribute('aria-selected', String(i === sel));
     li.tabIndex = i === sel ? 0 : -1;
+    const grip = document.createElement('span'); grip.className = 'grip'; grip.setAttribute('aria-hidden', 'true'); grip.textContent = '⋮⋮';
     const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = c.color;
     const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = c.name || 'Ohne Namen';
     const ct = document.createElement('span'); ct.className = 'ct'; ct.textContent = c.links.length;
     const mv = document.createElement('span'); mv.className = 'mv';
-    mv.append(btn('↑', 'Nach oben', () => move(data.clients, i, -1, true)), btn('↓', 'Nach unten', () => move(data.clients, i, 1, true)));
-    li.append(dot, nm, ct, mv);
-    li.onclick = (e) => { if (e.target.closest('.mv')) return; select(i); };
+    mv.append(
+      btn('⤒', 'Ganz nach oben', () => relocate(i, 0)),
+      btn('↑', 'Nach oben', () => relocate(i, i - 1)),
+      btn('↓', 'Nach unten', () => relocate(i, i + 1)),
+    );
+    li.append(grip, dot, nm, ct, mv);
+    li.onclick = (e) => { if (e.target.closest('.mv')) return; select(i, true); };
     li.onkeydown = (e) => {
-      if (e.key === 'ArrowDown' && i < data.clients.length - 1) { e.preventDefault(); select(i + 1, true); }
+      // Alt+Pfeil verschiebt, Alt+Pos1 ganz nach oben
+      if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); relocate(i, i - 1); return $('#clientList').querySelector('[aria-selected="true"]')?.focus(); }
+      if (e.altKey && e.key === 'ArrowDown') { e.preventDefault(); relocate(i, i + 1); return $('#clientList').querySelector('[aria-selected="true"]')?.focus(); }
+      if (e.altKey && e.key === 'Home') { e.preventDefault(); relocate(i, 0); return $('#clientList').querySelector('[aria-selected="true"]')?.focus(); }
+      if (e.key === 'ArrowDown' && i < n - 1) { e.preventDefault(); select(i + 1, true); }
       if (e.key === 'ArrowUp' && i > 0) { e.preventDefault(); select(i - 1, true); }
     };
+    // Ziehen und Ablegen
+    li.addEventListener('dragstart', (e) => { dragFrom = i; li.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)); });
+    li.addEventListener('dragend', () => { dragFrom = -1; li.classList.remove('dragging'); ul.querySelectorAll('.over-top,.over-bottom').forEach((x) => x.classList.remove('over-top', 'over-bottom')); });
+    li.addEventListener('dragover', (e) => {
+      if (dragFrom < 0) return;
+      e.preventDefault();
+      const r = li.getBoundingClientRect();
+      const below = e.clientY > r.top + r.height / 2;
+      li.classList.toggle('over-bottom', below);
+      li.classList.toggle('over-top', !below);
+    });
+    li.addEventListener('dragleave', () => li.classList.remove('over-top', 'over-bottom'));
+    li.addEventListener('drop', (e) => {
+      if (dragFrom < 0) return;
+      e.preventDefault();
+      const below = li.classList.contains('over-bottom');
+      let to = i + (below ? 1 : 0);
+      if (dragFrom < to) to--;
+      relocate(dragFrom, to);
+    });
     ul.append(li);
   });
-  $('#empty').hidden = data.clients.length > 0;
-  $('#form').hidden = data.clients.length === 0;
+  $('#empty').hidden = n > 0;
+  $('#form').hidden = n === 0;
 }
 function btn(text, label, fn, cls = '') {
   const b = document.createElement('button');
@@ -92,12 +147,11 @@ function btn(text, label, fn, cls = '') {
   b.onclick = (e) => { e.stopPropagation(); fn(); };
   return b;
 }
-function move(arr, i, d, isClient) {
+function move(arr, i, d) {
   const j = i + d;
   if (j < 0 || j >= arr.length) return;
   [arr[i], arr[j]] = [arr[j], arr[i]];
-  if (isClient) { sel = j; drawDetail(); }
-  else drawLinks();
+  drawLinks();
   changed();
 }
 function select(i, focusList = false) {

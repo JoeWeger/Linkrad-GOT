@@ -1,6 +1,6 @@
 {
   "name": "getontop-linkrad",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "description": "getontop Linkrad: zweimal Shift, Kunde wählen, Link in Chrome öffnen.",
   "author": "getontop",
